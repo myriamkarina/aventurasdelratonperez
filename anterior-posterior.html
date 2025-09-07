@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Anterior y Posterior – Ratón Pérez</title>
+<style>
+  :root{--bg:#f2f8ff;--primary:#2b6cb0;--ok:#2f855a;--bad:#c53030;--card:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg) url('images/raton-fondo.png') repeat;
+       background-size:200px;}
+  .wrap{max-width:900px;margin:0 auto;padding:18px;background:rgba(255,255,255,0.88);border-radius:20px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  header .logo{font-size:42px}
+  header h1{margin:0;color:var(--primary);font-size:clamp(20px,3.2vw,34px)}
+
+  .card{background:var(--card);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:18px;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;bottom:-10px;right:-10px;width:160px;height:160px;background:url('images/raton-esquina.png') no-repeat center/contain;opacity:.3;pointer-events:none}
+
+  .row{display:flex;flex-wrap:wrap;gap:16px}
+
+  .panel-left{flex:2 1 460px;display:grid;gap:16px;place-items:center;text-align:center}
+  .panel-right{flex:1 1 250px;display:grid;gap:12px}
+
+  .problem{font-size:clamp(40px,7vw,80px);font-weight:900;color:#1e293b;display:flex;align-items:center;gap:12px}
+  .problem img{height:80px}
+  .tips{margin-top:-10px;color:#475569;font-weight:600}
+
+  .inputs{display:flex;align-items:center;gap:12px}
+  .inputs .n{width:90px;height:70px;border:2px solid #cbd5e1;border-radius:16px;text-align:center;font-size:36px;font-weight:800}
+  .inputs .n:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(43,108,176,.15)}
+  .btn{cursor:pointer;border:0;border-radius:14px;padding:12px 16px;font-weight:800}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-ghost{background:#e2e8f0;color:#1e293b}
+
+  .status{min-height:32px;font-weight:800}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+
+  .seg{display:flex;gap:8px}
+  .seg button{flex:1;border:2px solid #cbd5e1;background:#fff;border-radius:12px;padding:10px;font-weight:800}
+  .seg button.active{background:#ffd166;border-color:#e6b400}
+  .pill{background:#f1f5f9;border-radius:999px;padding:8px 12px;font-size:14px}
+  .row-right{display:grid;gap:10px}
+  label{display:flex;align-items:center;gap:8px;font-size:14px;color:#334155}
+
+  .celebrate{position:fixed;inset:0;display:none;place-items:center;pointer-events:none;z-index:999}
+  .celebrate.show{display:grid;animation:pop .9s ease}
+  @keyframes pop{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+  .banner{background:#fff;border-radius:22px;padding:16px 24px;border:6px solid var(--ok);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+  .banner h2{margin:0;color:var(--ok);font-size:clamp(40px,6vw,72px)}
+  .confetti{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:998}
+  .confetti span{position:absolute;width:10px;height:16px;border-radius:2px;opacity:.9;animation:fall 1200ms linear forwards}
+  @keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  footer{text-align:center;color:#64748b;margin-top:10px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">🐭🦷</div>
+      <h1>Anterior y Posterior – con el Ratón Pérez</h1>
+    </header>
+
+    <div class="card">
+      <div class="row">
+        <section class="panel-left" aria-live="polite">
+          <div class="problem"><img src="images/raton.png" alt="Ratón Pérez"/>Número: <span id="num">7</span></div>
+          <div class="tips">Escribí el <b>anterior</b> y el <b>posterior</b></div>
+          <div class="inputs">
+            <input id="prev" class="n" inputmode="numeric" aria-label="Anterior" placeholder="Anterior" />
+            <button class="btn btn-ghost" id="btnCheck">✓</button>
+            <input id="next" class="n" inputmode="numeric" aria-label="Posterior" placeholder="Posterior" />
+          </div>
+          <div class="status" id="status"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" id="btnNew">Nueva tarjeta</button>
+            <button class="btn btn-ghost" id="btnClear">Limpiar</button>
+          </div>
+        </section>
+
+        <aside class="panel-right">
+          <div class="pill">Nivel de dificultad</div>
+          <div class="seg" role="group" aria-label="Nivel">
+            <button data-min="1" data-max="50" class="active">Nivel 1 (1–50)</button>
+            <button data-min="1" data-max="100">Nivel 2 (1–100)</button>
+          </div>
+          <div class="row-right">
+            <label><input type="checkbox" id="edges"/> Incluir extremos (1 y 50/100)</label>
+            <div id="score" class="pill">Aciertos: 0 | Intentos: 0</div>
+            <div class="pill">Sugerencia: si no marcás extremos, el juego evita 1 y 50/100.</div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <footer>Consejo: preguntá “¿qué número viene antes? ¿y después?” y luego escriban juntos.</footer>
+  </div>
+
+  <div class="celebrate" id="celebrate" aria-hidden="true"><div class="banner"><h2>¡GENIAL! 🎉</h2></div></div>
+  <div class="confetti" id="confetti"></div>
+
+  <audio id="sound-ok" src="sounds/ok.mp3" preload="auto"></audio>
+  <audio id="sound-bad" src="sounds/bad.mp3" preload="auto"></audio>
+
+<script>
+  const numEl = document.getElementById('num');
+  const prevEl = document.getElementById('prev');
+  const nextEl = document.getElementById('next');
+  const statusEl = document.getElementById('status');
+  const btnNew = document.getElementById('btnNew');
+  const btnClear = document.getElementById('btnClear');
+  const btnCheck = document.getElementById('btnCheck');
+  const segBtns = document.querySelectorAll('.seg button');
+  const scoreEl = document.getElementById('score');
+  const edgesEl = document.getElementById('edges');
+  const celebrate = document.getElementById('celebrate');
+  const confetti  = document.getElementById('confetti');
+  const ok = document.getElementById('sound-ok');
+  const bad = document.getElementById('sound-bad');
+
+  let min=1, max=50, current=7, tries=0, hits=0;
+
+  function randIn(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+
+  function pickNumber(){
+    const useEdges = edgesEl.checked;
+    if(useEdges){ current = randIn(min, max);} else { current = randIn(min+1, max-1); }
+    numEl.textContent = current;
+    prevEl.value=''; nextEl.value=''; statusEl.textContent=''; prevEl.focus();
+  }
+
+  function showConfetti(){
+    confetti.innerHTML='';
+    for(let i=0;i<80;i++){
+      const s=document.createElement('span');
+      s.style.left=Math.random()*100+'vw'; s.style.top='-10vh';
+      s.style.background=`hsl(${Math.random()*360},90%,60%)`;
+      s.style.animationDelay=Math.random()*0.4+'s';
+      confetti.appendChild(s);
+    }
+    celebrate.classList.add('show');
+    setTimeout(()=>celebrate.classList.remove('show'),900);
+    setTimeout(()=>confetti.innerHTML='',1200);
+  }
+
+  function check(){
+    const p=Number(prevEl.value.trim()); const n=Number(nextEl.value.trim());
+    if(Number.isNaN(p)||Number.isNaN(n)) return;
+    tries++;
+    if(p===current-1 && n===current+1){
+      hits++; statusEl.textContent='¡Muy bien!'; statusEl.className='status ok';
+      ok.currentTime=0; ok.play(); showConfetti();
+      setTimeout(pickNumber,600);
+    } else {
+      statusEl.textContent='El anterior era '+(current-1)+' y el posterior '+(current+1)+'.';
+      statusEl.className='status bad'; bad.currentTime=0; bad.play();
+    }
+    scoreEl.textContent=`Aciertos: ${hits} | Intentos: ${tries}`;
+  }
+
+  btnNew.addEventListener('click', pickNumber);
+  btnClear.addEventListener('click', ()=>{prevEl.value='';nextEl.value='';statusEl.textContent='';prevEl.focus();});
+  btnCheck.addEventListener('click', check);
+  [prevEl,nextEl].forEach(el=>el.addEventListener('keydown', e=>{if(e.key==='Enter')check();}));
+
+  segBtns.forEach(b=>b.addEventListener('click',()=>{
+    segBtns.forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    min=Number(b.dataset.min); max=Number(b.dataset.max);
+    pickNumber();
+  }));
+
+  pickNumber();
+</script>
+</body>
+</html>
+
+<!-- Recursos esperados:
+- images/raton-fondo.png : patrón fondo
+- images/raton-esquina.png : ilustración decorativa
+- images/raton.png : dibujo principal del Ratón Pérez junto al número
+- sounds/ok.mp3 , sounds/bad.mp3 : sonidos de acierto y error -->

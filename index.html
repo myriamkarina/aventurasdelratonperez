@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ratón Pérez – Portal de juegos</title>
+<style>
+  :root{
+    --bg:#e7f3ff; --card:#ffffff; --ink:#0f172a; --muted:#334155;
+    --brand:#2b6cb0; --accent:#ffd166; --ok:#22c55e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg) url('images/raton-fondo.png') repeat;background-size:220px;color:var(--ink)}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  header .logo{font-size:44px}
+  header h1{margin:0;font-size:clamp(22px,3.5vw,40px);color:var(--brand)}
+  header p{margin:0;color:var(--muted)}
+
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+  .card{grid-column:span 12; background:var(--card); border-radius:18px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.08); display:flex; gap:16px; align-items:center}
+  @media (min-width:720px){ .card{grid-column:span 6} }
+  @media (min-width:1024px){ .card{grid-column:span 3} }
+
+  .emoji{font-size:40px; flex:0 0 auto}
+  .title{font-weight:900;font-size:20px;margin:0 0 4px}
+  .desc{margin:0;color:var(--muted);font-size:14px}
+  .spacer{flex:1}
+  .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-ghost{background:#e2e8f0;color:#111827}
+  .footer{margin-top:18px;color:#475569;font-size:14px}
+  .tip{background:#fff8;border:2px dashed #cbd5e1;border-radius:12px;padding:10px;margin-top:8px}
+  a.btn{display:inline-block;text-decoration:none}
+
+  /* cintillo superior lindo */
+  .ribbon{position:relative;margin-bottom:12px}
+  .ribbon::before{content:"";position:absolute;inset:-8px -8px auto -8px;height:10px;background:linear-gradient(90deg,#60a5fa,#a78bfa,#f472b6,#f59e0b);border-radius:14px;opacity:.6}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="ribbon">
+      <div class="logo">🐭🦷✨</div>
+      <div>
+        <h1>Ratón Pérez – Portal de juegos</h1>
+        <p>Elegí un juego para 1.º grado. Funcionan en tablet, compu o pizarra digital.</p>
+      </div>
+    </header>
+
+    <section class="grid">
+      <!-- Junto monedas -->
+      <article class="card">
+        <div class="emoji">🪙</div>
+        <div>
+          <h2 class="title">Junto monedas</h2>
+          <p class="desc">Arrastrá monedas de 10 y de 1 al cofre hasta alcanzar el valor objetivo. Dos niveles: 1–50 / 1–100.</p>
+        </div>
+        <div class="spacer"></div>
+        <a class="btn btn-primary" href="junto-monedas.html">Abrir</a>
+      </article>
+
+      <!-- Anterior y posterior -->
+      <article class="card">
+        <div class="emoji">🔢</div>
+        <div>
+          <h2 class="title">Anterior y posterior</h2>
+          <p class="desc">Dado un número, escribí el anterior y el posterior. Niveles: 1–50 / 1–100.</p>
+        </div>
+        <div class="spacer"></div>
+        <a class="btn btn-primary" href="anterior-posterior.html">Abrir</a>
+      </article>
+
+      <!-- Ubicación espacial -->
+      <article class="card">
+        <div class="emoji">🧭</div>
+        <div>
+          <h2 class="title">Ubicación espacial</h2>
+          <p class="desc">Arrastrá el objeto según la consigna: arriba, abajo, izquierda, derecha, adentro.</p>
+        </div>
+        <div class="spacer"></div>
+        <a class="btn btn-primary" href="ubicacion-espacial.html">Abrir</a>
+      </article>
+
+      <!-- Juego con las sumas -->
+      <article class="card">
+        <div class="emoji">➕</div>
+        <div>
+          <h2 class="title">Juego con las sumas</h2>
+          <p class="desc">Resolvé sumas simples; incluye opciones para sumar de 10 en 10 y dobles (3+3, 4+4…).</p>
+        </div>
+        <div class="spacer"></div>
+        <a class="btn btn-primary" href="sumas.html">Abrir</a>
+      </article>
+    </section>
+
+    <section class="footer">
+      <div class="tip">
+        📁 Colocá este <b>index.html</b> en la raíz del proyecto y asegurate de tener los otros archivos con estos nombres:
+        <ul>
+          <li><code>junto-monedas.html</code></li>
+          <li><code>anterior-posterior.html</code></li>
+          <li><code>ubicacion-espacial.html</code></li>
+          <li><code>sumas.html</code></li>
+        </ul>
+        Si tus páginas tienen otros nombres, cambiá los enlaces <code>href</code> de los botones.
+      </div>
+      <p>Consejo: en GitHub Pages, poné todo en la rama <b>main</b> y activá <b>Pages</b> → <i>Deploy from a branch</i>.</p>
+    </section>
+  </div>
+</body>
+</html>

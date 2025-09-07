@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cofre del Ratón Pérez – Contemos monedas</title>
+<style>
+  :root{--bg:#e7f3ff;--primary:#2b6cb0;--ok:#2f855a;--bad:#c53030;--card:#fff;--accent:#ffd166}
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg) url('images/raton-fondo.png') repeat;
+    background-size:200px
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:18px}
+  header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  header .logo{font-size:40px}
+  header h1{margin:0;color:var(--primary);font-size:clamp(20px,3.2vw,34px)}
+
+  .panel{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:10px 0}
+  .pill{background:#f1f5f9;border-radius:999px;padding:8px 12px;font-size:14px}
+  .seg{display:flex;gap:8px}
+  .seg button{border:2px solid #cbd5e1;background:#fff;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}
+  .seg button.active{background:var(--accent);border-color:#e6b400}
+
+  .board{position:relative;background:var(--card);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08);padding:14px}
+  .scene{
+    position:relative;height:560px;border:3px solid #cbd5e1;border-radius:14px;
+    background:linear-gradient(#e7f3ff,#ffffff 58%, #d6e4ff 58%, #d6e4ff)
+  }
+
+  .tray{
+    position:absolute;left:20px;top:20px;width:360px;height:450px;
+    border:3px dashed #94a3b8;border-radius:14px;background:#fff9;
+    display:flex;flex-wrap:wrap;align-content:flex-start;padding:10px;gap:10px;z-index:5
+  }
+  .tray::before{
+    content:'BANDEJA';position:absolute;top:-22px;left:12px;background:#fff;
+    padding:2px 8px;border-radius:8px;border:2px solid #cbd5e1;font-weight:800;color:#334155
+  }
+
+  .chest {
+  position: absolute;
+  left: 60%;             /* centrar horizontalmente */
+  bottom: 20px;          /* distancia desde abajo */
+  width: 400px;          /* ancho del cofre (ajustá según tu imagen) */
+  transform: translateX(-50%); /* truco para centrar */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.chest img {
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.chest-zone{
+  position:absolute;
+  /* zona grande, centrada sobre el cofre */
+  left:60%; 
+  top:75%; 
+  width:45%; 
+  height:46%;
+  transform:translate(-50%,-50%);
+  border:5px dashed #ffd700;
+  border-radius:16px;
+  background:rgba(255,255,255,0.22);
+  display:flex; 
+  align-items:center; 
+  justify-content:center; 
+  transition:background 0.5s, border-color 0.5s;
+  z-index:6; /* por encima de la imagen */
+}
+.chest-zone::before{
+  content:'COFRE'; 
+  position:absolute; 
+  top:-32px; 
+  left:50%; 
+  transform:translateX(-50%);
+  background:#fff; 
+  padding:4px 12px; 
+  border-radius:10px; 
+  border:2px solid #2b6cb0; 
+  font-weight:800; 
+  color:#1e293b;
+
+  }
+  .chest-zone.hint{
+    background:rgba(255,255,0,0.3);
+    border-color:#facc15;
+  }
+
+  /* MONEDAS */
+  .coin{
+    width:72px;height:72px;border-radius:50%;display:grid;place-items:center;
+    font-size:22px;font-weight:900;border:3px solid #334155;
+    box-shadow:0 6px 16px rgba(0,0,0,.12);cursor:grab;user-select:none;touch-action:none;
+    z-index:10
+  }
+  .coin.dragging{opacity:.75;cursor:grabbing}
+  .coin.one{background:#fff59d}
+  .coin.ten{background:#ffd166;border-color:#8a6d00}
+  .coin .v{display:block;line-height:1;font-size:20px}
+  .coin .emoji{font-size:20px;opacity:.8}
+
+  .floating{position:absolute}
+
+  .task{font-size:clamp(18px,3vw,28px);font-weight:900;color:#1e293b}
+  .status{min-height:28px;font-weight:800}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+
+  .btn{cursor:pointer;border:0;border-radius:12px;padding:10px 14px;font-weight:800}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-ghost{background:#e2e8f0;color:#1e293b}
+
+  .counter{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .bubble{background:#fff;border:2px solid #cbd5e1;border-radius:12px;padding:6px 10px;font-weight:800}
+
+  .celebrate{position:fixed;inset:0;display:none;place-items:center;pointer-events:none;z-index:999}
+  .celebrate.show{display:grid;animation:fade .9s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .banner{background:#fff;border-radius:24px;padding:18px 28px;box-shadow:0 10px 40px rgba(0,0,0,.2);border:6px solid var(--ok)}
+  .banner h2{margin:0;color:var(--ok);font-size:clamp(40px,6vw,72px)}
+  .confetti{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:998}
+  .confetti span{position:absolute;width:10px;height:16px;border-radius:2px;opacity:.9;animation:fall 1200ms linear forwards}
+  @keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">🐭💰</div>
+      <h1>Cofre del Ratón Pérez – Contemos monedas</h1>
+    </header>
+
+    <div class="panel">
+      <div class="task" id="task">Guardá <span id="target">25</span> en el cofre usando monedas de <b>10</b> y de <b>1</b></div>
+      <div class="counter">
+        <span class="bubble">Valor en cofre: <span id="sumChest">0</span></span>
+        <span class="bubble">Monedas en cofre: <span id="countChest">0</span></span>
+        <span class="bubble">En bandeja: <span id="countTray">0</span></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="pill">Nivel</div>
+      <div class="seg" role="group" aria-label="Nivel de dificultad">
+        <button data-min="1" data-max="50" class="active">Nivel 1 (1–50)</button>
+        <button data-min="1" data-max="100">Nivel 2 (1–100)</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="btnNew" class="btn btn-primary">Nueva consigna</button>
+        <button id="btnReset" class="btn btn-ghost">Reiniciar</button>
+        <button id="btnCheck" class="btn btn-ghost">Comprobar</button>
+        <button id="btnHint" class="btn btn-ghost">Mostrar pista</button>
+      </div>
+    </div>
+
+    <div class="board">
+      <div class="scene" id="scene">
+        <div class="tray" id="tray"></div>
+        <div class="chest" id="chest">
+          <img src="images/cofre.png" alt="Cofre del Ratón Pérez"/>
+          <div class="chest-zone" id="chestZone" aria-label="zona del cofre"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="celebrate" id="celebrate" aria-hidden="true"><div class="banner"><h2>¡GENIAL! 🎉</h2></div></div>
+  <div class="confetti" id="confetti"></div>
+
+  <audio id="sound-ok" src="sounds/ok.mp3" preload="auto"></audio>
+  <audio id="sound-bad" src="sounds/bad.mp3" preload="auto"></audio>
+
+<script>
+  const tray = document.getElementById('tray');
+  const chestZone = document.getElementById('chestZone');
+  const scene = document.getElementById('scene');
+  const targetEl = document.getElementById('target');
+  const sumChestEl = document.getElementById('sumChest');
+  const countChestEl = document.getElementById('countChest');
+  const countTrayEl = document.getElementById('countTray');
+  const statusEl = document.getElementById('status');
+  const segBtns = document.querySelectorAll('.seg button');
+  const btnNew = document.getElementById('btnNew');
+  const btnReset = document.getElementById('btnReset');
+  const btnCheck = document.getElementById('btnCheck');
+  const btnHint = document.getElementById('btnHint');
+  const celebrate = document.getElementById('celebrate');
+  const confetti  = document.getElementById('confetti');
+  const ok = document.getElementById('sound-ok');
+  const bad = document.getElementById('sound-bad');
+
+  let min=1,max=50,target=25;
+  let coins=[]; // {el, inChest, value}
+
+  function randIn(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+
+  function makeCoin(value){
+    const el=document.createElement('div');
+    el.className='coin ' + (value===10?'ten':'one');
+    el.setAttribute('draggable','false');
+    el.dataset.value=String(value);
+    el.innerHTML = `<span class="v">${value}</span><span class="emoji">💰</span>`;
+    tray.appendChild(el);
+    const data={el,inChest:false,value};
+    enableDrag(data);
+    return data;
+  }
+
+  function enableDrag(c){
+    let dragging=false, dx=0, dy=0, startParent=null;
+    const el=c.el;
+    const onDown=(e)=>{
+      const p=getPoint(e); const r=el.getBoundingClientRect();
+      dx=p.x-r.left; dy=p.y-r.top; dragging=true; el.classList.add('dragging');
+      startParent=el.parentElement;
+      if(startParent===tray){
+        const rb=el.getBoundingClientRect(), sb=scene.getBoundingClientRect();
+        scene.appendChild(el); el.classList.add('floating');
+        el.style.left=(rb.left - sb.left)+'px';
+        el.style.top =(rb.top  - sb.top )+'px';
+      }
+      el.setPointerCapture?.(e.pointerId);
+    };
+    const onMove=(e)=>{
+      if(!dragging) return;
+      const p=getPoint(e); const sb=scene.getBoundingClientRect();
+      el.style.left=(p.x-sb.left-dx)+'px';
+      el.style.top =(p.y-sb.top -dy)+'px';
+    };
+    const onUp=(e)=>{
+      if(!dragging) return; dragging=false; el.classList.remove('dragging');
+      const inside = isInside(el, chestZone);
+      if(inside){
+        c.inChest=true;
+        const zb=chestZone.getBoundingClientRect(); const sb=scene.getBoundingClientRect();
+        const px=zb.left - sb.left + 8 + Math.random()*(zb.width-36);
+        const py=zb.top  - sb.top  + 8 + Math.random()*(zb.height-36);
+        el.style.left=px+'px'; el.style.top=py+'px';
+      } else {
+        c.inChest=false;
+        if(isIntersecting(el, tray)){
+          tray.appendChild(el); el.classList.remove('floating'); el.style.left=''; el.style.top='';
+        }
+      }
+      updateTotals();
+    };
+    el.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }
+
+  function getPoint(e){ if(e.touches&&e.touches[0]) return {x:e.touches[0].clientX,y:e.touches[0].clientY}; return {x:e.clientX,y:e.clientY}; }
+  function isInside(el, zone){ const a=el.getBoundingClientRect(); const b=zone.getBoundingClientRect(); const cx=a.left+a.width/2; const cy=a.top+a.height/2; return (cx>=b.left && cx<=b.right && cy>=b.top && cy<=b.bottom); }
+  function isIntersecting(el, container){ const a=el.getBoundingClientRect(); const b=container.getBoundingClientRect(); return !(a.right<b.left||a.left>b.right||a.bottom<b.top||a.top>b.bottom); }
+
+  function updateTotals(){
+    const inChest = coins.filter(c=>c.inChest);
+    const sum = inChest.reduce((s,c)=>s + c.value, 0);
+    sumChestEl.textContent = sum;
+    countChestEl.textContent = inChest.length;
+    countTrayEl.textContent  = coins.length - inChest.length;
+    statusEl.textContent='';
+    if(sum===target){
+      ok.currentTime=0; ok.play();
+      statusEl.textContent='¡Perfecto! Alcanzaste el objetivo.';
+      statusEl.className='status ok';
+      showConfetti();
+    }
+  }
+
+  function newChallenge(){
+    target = randIn(min,max); targetEl.textContent=target;
+    coins.forEach(c=>c.el.remove()); coins=[]; statusEl.textContent='';
+    for(let i=0;i<10;i++) coins.push(makeCoin(10));
+    for(let i=0;i<10;i++) coins.push(makeCoin(1));
+    updateTotals();
+  }
+
+  function resetAll(){
+    coins.forEach(c=>{
+      c.inChest=false; tray.appendChild(c.el);
+      c.el.classList.remove('floating'); c.el.style.left=''; c.el.style.top='';
+    });
+    updateTotals();
+  }
+
+  function check(){
+    const sum = Number(sumChestEl.textContent);
+    if(sum===target){
+      ok.currentTime=0; ok.play();
+      statusEl.textContent='¡Muy bien!'; statusEl.className='status ok';
+      showConfetti();
+    } else {
+      bad.currentTime=0; bad.play();
+      statusEl.textContent=`Revisá: objetivo ${target} y hay ${sum}.`;
+      statusEl.className='status bad';
+    }
+  }
+
+  function showConfetti(){
+    confetti.innerHTML='';
+    for(let i=0;i<100;i++){
+      const s=document.createElement('span');
+      s.style.left=Math.random()*100+'vw';
+      s.style.top='-10vh';
+      s.style.background=`hsl(${Math.random()*360},90%,60%)`;
+      s.style.animationDelay=Math.random()*0.5+'s';
+      confetti.appendChild(s);
+    }
+    celebrate.classList.add('show');
+    setTimeout(()=>celebrate.classList.remove('show'),900);
+    setTimeout(()=>confetti.innerHTML='',1300);
+  }
+
+  // Botón mostrar pista
+  btnHint.addEventListener('click',()=>{
+    chestZone.classList.add('hint');
+    setTimeout(()=>chestZone.classList.remove('hint'),1000);
+  });
+
+  segBtns.forEach(b=>b.addEventListener('click',()=>{
+    segBtns.forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    min=Number(b.dataset.min); max=Number(b.dataset.max);
+    newChallenge();
+  }));
+
+  btnNew.addEventListener('click', newChallenge);
+  btnReset.addEventListener('click', resetAll);
+  btnCheck.addEventListener('click', check);
+
+  // Inicializar
+  newChallenge();
+</script>
+</body>
+</html>

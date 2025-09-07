@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ubicación espacial con el Ratón Pérez</title>
+<style>
+  :root{ --bg:#f2f8ff; --primary:#2b6cb0; --ok:#2f855a; --bad:#c53030; --card:#fff; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg) url('images/raton-fondo.png') repeat;background-size:220px}
+  .wrap{max-width:1000px;margin:0 auto;padding:18px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  header .logo{font-size:40px}
+  header h1{margin:0;color:var(--primary);font-size:clamp(20px,3.2vw,34px)}
+
+  .board{position:relative;background:var(--card);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08);padding:14px;overflow:hidden}
+  .scene{position:relative;height:600px;border:3px solid #cbd5e1;border-radius:14px;background:linear-gradient(#e7f3ff,#ffffff 55%, #d6e4ff 55%, #d6e4ff);}
+  /* Cielo arriba, línea de horizonte a 55%, piso celeste claro */
+
+  .task{font-size:clamp(18px,3vw,28px);font-weight:800;color:#1e293b;margin:8px 0}
+  .status{min-height:28px;font-weight:800}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+
+  /* IMÁGENES REALES */
+  .mesa{position:absolute;left:50%;top:55%;transform:translate(-50%,-100%); /* apoya sobre horizonte */
+        width:520px; height:auto;}
+  .caja{position:absolute;left:50%;transform:translateX(-50%); width:220px; height:auto;}
+  /* la caja se ubicará con JS encima de la mesa */
+
+  /* ZONAS (sin ayudas visuales) */
+  .zone{position:absolute;pointer-events:none}
+  #zone-on{ /* ARRIBA = sobre la mesa (superficie) */ }
+  #zone-under{ /* ABAJO = bajo la mesa */ }
+  #zone-left{ /* IZQUIERDA de la mesa */ }
+  #zone-right{ /* DERECHA de la mesa */ }
+  #zone-inside{ /* ADENTRO de la caja */ }
+
+  /* OBJETO ARRASTRABLE */
+  .item{position:absolute;left:50%;top:18%;transform:translateX(-50%);width:90px;height:90px;cursor:grab;user-select:none;touch-action:none;z-index:10}
+  .item:active{cursor:grabbing}
+  .token{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;font-size:54px;background:#fff;border:4px solid #2b6cb0;box-shadow:0 6px 16px rgba(0,0,0,.1)}
+  .muted{opacity:.7}
+
+  .celebrate{position:fixed;inset:0;display:none;place-items:center;pointer-events:none;z-index:999}
+  .celebrate.show{display:grid;animation:fade .9s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .banner{background:#fff;border-radius:24px;padding:18px 28px;box-shadow:0 10px 40px rgba(0,0,0,.2);border:6px solid var(--ok)}
+  .banner h2{margin:0;font-size:clamp(38px,6vw,68px);color:var(--ok)}
+  .confetti{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:998}
+  .confetti span{position:absolute;width:10px;height:16px;border-radius:2px;opacity:.9;animation:fall 1200ms linear forwards}
+  @keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.label{position:absolute;background:#0008;color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;z-index:5}
+.label-left{left:12px;top:50%;transform:translateY(-50%)}
+.label-right{right:12px;top:50%;transform:translateY(-50%)}
+.label-top{left:50%;top:12px;transform:translateX(-50%)}
+.label-bottom{left:50%;bottom:12px;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">🐭🦷</div>
+      <h1>Ubicación espacial con el Ratón Pérez</h1>
+    </header>
+
+    <div class="controls" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0">
+      <button id="btnNew" style="padding:10px 14px;border:0;border-radius:12px;background:#2b6cb0;color:#fff;font-weight:800">Nueva consigna</button>
+      <button id="btnReset" style="padding:10px 14px;border:0;border-radius:12px;background:#e2e8f0;color:#1e293b;font-weight:800">Reset</button>
+      <span id="msg" style="font-weight:700;color:#1e293b"></span>
+    </div>
+
+    <div class="task" id="task">Colocá el diente ARRIBA de la mesa</div>
+
+    <div class="board">
+      <div class="scene" id="scene">
+        <!-- Mesa vista de perfil (imagen real) -->
+        <img id="mesa" class="mesa" src="images/mesa.png" alt="Mesa de perfil" />
+        <!-- Caja real sobre la mesa (imagen con vista lateral/abierta) -->
+        <img id="caja" class="caja" src="images/caja.png" alt="Caja sobre la mesa" />
+
+        <!-- Zonas invisibles para comprobar -->
+        <div id="zone-on" class="zone" aria-hidden="true"></div>
+        <div id="zone-under" class="zone" aria-hidden="true"></div>
+        <div id="zone-left" class="zone" aria-hidden="true"></div>
+        <div id="zone-right" class="zone" aria-hidden="true"></div>
+        <div id="zone-inside" class="zone" aria-hidden="true"></div>
+
+        <!-- Etiquetas visibles para orientación -->
+        <div class="label label-left">IZQUIERDA</div>
+        <div class="label label-right">DERECHA</div>
+        <div class="label label-top">ARRIBA</div>
+        <div class="label label-bottom">ABAJO</div>
+
+        <!-- Objeto para arrastrar -->
+        <div class="item" id="item" role="img" aria-label="objeto para arrastrar">
+          <div class="token" id="token">🦷</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="celebrate" id="celebrate" aria-hidden="true"><div class="banner"><h2>¡GENIAL! 🎉</h2></div></div>
+  <div class="confetti" id="confetti"></div>
+
+  <audio id="sound-ok" src="sounds/ok.mp3" preload="auto"></audio>
+  <audio id="sound-bad" src="sounds/bad.mp3" preload="auto"></audio>
+
+<script>
+  const item = document.getElementById('item');
+  const token = document.getElementById('token');
+  const scene = document.getElementById('scene');
+  const mesa  = document.getElementById('mesa');
+  const caja  = document.getElementById('caja');
+
+  const statusEl = document.getElementById('status');
+  const taskEl = document.getElementById('task');
+  const celebrate = document.getElementById('celebrate');
+  const confetti  = document.getElementById('confetti');
+  const ok = document.getElementById('sound-ok');
+  const bad = document.getElementById('sound-bad');
+
+  // zonas
+  const zOn = document.getElementById('zone-on');
+  const zUnder = document.getElementById('zone-under');
+  const zLeft = document.getElementById('zone-left');
+  const zRight = document.getElementById('zone-right');
+  const zInside = document.getElementById('zone-inside');
+
+  let current=null;
+  const tasks=[
+    {key:'ARRIBA',target:zOn ,text:'Colocá el diente ARRIBA de la mesa'},
+    {key:'ABAJO', target:zUnder,text:'Colocá el diente ABAJO de la mesa'},
+    {key:'IZQUIERDA',target:zLeft,text:'Colocá el diente a la IZQUIERDA de la mesa'},
+    {key:'DERECHA',  target:zRight,text:'Colocá el diente a la DERECHA de la mesa'},
+    {key:'ADENTRO', target:zInside,text:'Colocá el diente ADENTRO de la caja'}
+  ];
+
+  function layoutZones(){
+    // calcular zonas según posición/tamaño reales de la mesa y caja
+    const sb = scene.getBoundingClientRect();
+    const mb = mesa.getBoundingClientRect();
+    const cb = caja.getBoundingClientRect();
+
+    // ARRIBA: banda delgada justo sobre la tabla (10% del alto de la mesa)
+    const onH = Math.max(24, mb.height*0.18);
+    zOn.style.left = (mb.left - sb.left + mb.width*0.1) + 'px';
+    zOn.style.width= (mb.width*0.8) + 'px';
+    zOn.style.top  = (mb.top - sb.top - onH*0.6) + 'px';
+    zOn.style.height= onH + 'px';
+
+    // ABAJO: zona debajo de la mesa hasta el piso
+    zUnder.style.left = (mb.left - sb.left + mb.width*0.1) + 'px';
+    zUnder.style.width= (mb.width*0.8) + 'px';
+    zUnder.style.top  = (mb.bottom - sb.top + 8) + 'px';
+    zUnder.style.height= (sb.bottom - mb.bottom - 16) + 'px';
+
+    // IZQUIERDA / DERECHA: bandas verticales a cada lado de la mesa
+    const sideW = Math.max(60, (sb.width - mb.width)/2 - 20);
+    zLeft.style.left = '0px';
+    zLeft.style.top  = '0px';
+    zLeft.style.width= sideW + 'px';
+    zLeft.style.height= sb.height + 'px';
+
+    zRight.style.left = (sb.width - sideW) + 'px';
+    zRight.style.top  = '0px';
+    zRight.style.width= sideW + 'px';
+    zRight.style.height= sb.height + 'px';
+
+    // ADENTRO: interior de la caja (rectángulo central reducido)
+    const pad = 12; // padding interior
+    zInside.style.left = (cb.left - sb.left + pad) + 'px';
+    zInside.style.top  = (cb.top  - sb.top  + pad) + 'px';
+    zInside.style.width= (cb.width  - pad*2) + 'px';
+    zInside.style.height= (cb.height - pad*2) + 'px';
+  }
+
+  function placeBoxOnTable(){
+    // posicionar la caja apoyada sobre la mesa (centro-superior de la mesa)
+    const mb = mesa.getBoundingClientRect();
+    const sb = scene.getBoundingClientRect();
+    const cx = mb.left + mb.width/2 - sb.left; // centro x mesa relativo a scene
+    const topY = mb.top - sb.top - 6; // justo por encima
+    caja.style.top = topY + 'px';
+    caja.style.left = cx + 'px';
+    caja.style.transform = 'translate(-50%, -100%)';
+  }
+
+  function newTask(){
+    current = tasks[Math.floor(Math.random()*tasks.length)];
+    taskEl.textContent = current.text;
+    resetItem();
+  }
+
+  function showConfetti(){
+    confetti.innerHTML='';
+    for(let i=0;i<90;i++){
+      const s=document.createElement('span');
+      s.style.left=Math.random()*100+'vw'; s.style.top='-10vh';
+      s.style.background=`hsl(${Math.random()*360},90%,60%)`;
+      s.style.animationDelay=Math.random()*0.4+'s';
+      confetti.appendChild(s);
+    }
+    celebrate.classList.add('show');
+    setTimeout(()=>celebrate.classList.remove('show'),900);
+    setTimeout(()=>confetti.innerHTML='',1200);
+  }
+
+  let dragging=false,dx=0,dy=0;
+  function onDown(e){const p=getPoint(e);const r=item.getBoundingClientRect();dx=p.x-r.left;dy=p.y-r.top;dragging=true;item.classList.add('muted');}
+  function onMove(e){if(!dragging)return;const p=getPoint(e);const s=scene.getBoundingClientRect();let nx=p.x-s.left-dx;let ny=p.y-s.top-dy;item.style.left=nx+'px';item.style.top=ny+'px';item.style.transform='';}
+  function onUp(e){if(!dragging)return;dragging=false;item.classList.remove('muted');
+    const hit = isInTarget(item, current.target);
+    if(hit){ok.currentTime=0;ok.play();statusEl.textContent='¡Muy bien! '+current.key;statusEl.className='status ok';showConfetti();setTimeout(newTask,700);}else{bad.currentTime=0;bad.play();statusEl.textContent='Probá otra vez…';statusEl.className='status bad';}
+  }
+
+  function getPoint(e){if(e.touches&&e.touches[0])return{x:e.touches[0].clientX,y:e.touches[0].clientY};return{x:e.clientX,y:e.clientY};}
+  function isInTarget(elem,target){const a=elem.getBoundingClientRect();const b=target.getBoundingClientRect();const cx=a.left+a.width/2;const cy=a.top+a.height/2;return(cx>=b.left&&cx<=b.right&&cy>=b.top&&cy<=b.bottom);}
+  function resetItem(){item.style.left='50%';item.style.top='18%';item.style.transform='translateX(-50%)';}
+
+  function refresh(){
+    placeBoxOnTable();
+    layoutZones();
+  }
+
+  // Eventos
+  token.addEventListener('pointerdown',onDown);
+  window.addEventListener('pointermove',onMove);
+  window.addEventListener('pointerup',onUp);
+  window.addEventListener('resize', ()=>{ refresh(); });
+  window.addEventListener('load',   ()=>{ refresh(); });
+  mesa.addEventListener('load', ()=>{ refresh(); });
+  caja.addEventListener('load', ()=>{ refresh(); });
+
+  // Inicio
+  newTask();
+  refresh();
+</script>
+</body>
+</html>
+
+<!-- Colocá imágenes reales en:
+- images/mesa.png  (vista lateral de mesa, preferible PNG con fondo transparente)
+- images/caja.png  (caja abierta de perfil; la app toma su rectángulo para "ADENTRO")
+- sounds/ok.mp3 y sounds/bad.mp3 para feedback -->
