@@ -17,14 +17,14 @@
   header h1{margin:0;font-size:clamp(22px,3.5vw,40px);color:var(--brand)}
   header p{margin:0;color:var(--muted)}
 
-  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
-  .card{grid-column:span 12; background:var(--card); border-radius:18px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.08); display:flex; gap:16px; align-items:center}
-  @media (min-width:720px){ .card{grid-column:span 6} }
+  .grid{display:grid;grid-template-columns:repeat(10,1fr);gap:16px}
+  .card{grid-column:span 12; background:var(--card); border-radius:18px; padding:9px; box-shadow:0 10px 30px rgba(0,0,0,.08); display:flex; gap:16px; align-items:center}
+  @media (min-width:720px){ .card{grid-column:span 4} }
   @media (min-width:1024px){ .card{grid-column:span 3} }
 
-  .emoji{font-size:40px; flex:0 0 auto}
-  .title{font-weight:900;font-size:20px;margin:0 0 4px}
-  .desc{margin:0;color:var(--muted);font-size:14px}
+  .emoji{font-size:20px; flex:0 0 auto}
+  .title{font-weight:900;font-size:15px;margin:0 0 4px}
+  .desc{margin:0;color:var(--muted);font-size:13px}
   .spacer{flex:1}
   .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
   .btn-primary{background:var(--brand);color:#fff}
@@ -44,7 +44,7 @@
       <div class="logo">🐭🦷✨</div>
       <div>
         <h1>Ratón Pérez – Portal de juegos</h1>
-        <p>Elegí un juego para 1.º grado.</p>
+        <p>Elegí un juego. El Ratón Pérez te está esperando.</p>
       </div>
     </header>
 
@@ -54,7 +54,7 @@
         <div class="emoji">🪙</div>
         <div>
           <h2 class="title">Junto monedas</h2>
-          <p class="desc">Arrastrá monedas de 10 y de 1 al cofre hasta alcanzar el valor objetivo. Dos niveles: 1–50 / 1–100.</p>
+          <p class="desc">Arrastrá monedas de 10 y de 1 al cofre hasta alcanzar el valor. Dos niveles: 1–50 / 1–100.</p>
         </div>
         <div class="spacer"></div>
         <a class="btn btn-primary" href="junto-monedas.html">Abrir</a>
