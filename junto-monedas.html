@@ -127,6 +127,18 @@
   .confetti{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:998}
   .confetti span{position:absolute;width:10px;height:16px;border-radius:2px;opacity:.9;animation:fall 1200ms linear forwards}
   @keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  .btn-home{
+  display:inline-block;
+  padding:8px 14px;
+  background:#2b6cb0;
+  color:#fff;
+  font-weight:800;
+  border-radius:10px;
+  text-decoration:none;
+}
+.btn-home:hover{ background:#1e40af; }
+
 </style>
 </head>
 <body>
@@ -135,6 +147,19 @@
       <div class="logo">🐭💰</div>
       <h1>Cofre del Ratón Pérez – Contemos monedas</h1>
     </header>
+
+    <div style="margin:10px 0">
+  <a href="index.html" 
+     style="display:inline-block;
+            padding:8px 14px;
+            background:#2b6cb0;
+            color:#fff;
+            font-weight:800;
+            border-radius:10px;
+            text-decoration:none;">
+    ⬅ Volver al inicio
+  </a>
+</div>
 
     <div class="panel">
       <div class="task" id="task">Guardá <span id="target">25</span> en el cofre usando monedas de <b>10</b> y de <b>1</b></div>
